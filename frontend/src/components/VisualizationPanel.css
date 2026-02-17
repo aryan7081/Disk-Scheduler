@@ -1,0 +1,26 @@
+.visualization-panel {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.visualization-panel h2 {
+  color: #667eea;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+}
+
+.chart-container {
+  margin-bottom: 30px;
+}
+
+.chart-container h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.chart-container:last-child {
+  margin-bottom: 0;
+}
