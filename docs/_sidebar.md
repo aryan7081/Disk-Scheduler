@@ -1,2 +1,2 @@
-* [Home](/)
 * [Project Report](/report)
+* [Home](/)
