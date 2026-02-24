@@ -7,8 +7,9 @@ function InputPanel({ onSimulate, onCompare, loading }) {
   const [algorithm, setAlgorithm] = useState('FCFS');
   const [diskSize, setDiskSize] = useState(200);
   const [direction, setDirection] = useState('right');
+  const [nStep, setNStep] = useState(4);
 
-  const algorithmsRequiringDirection = ['SCAN', 'C-SCAN', 'LOOK', 'C-LOOK'];
+  const algorithmsRequiringDirection = ['SCAN', 'C-SCAN', 'LOOK', 'C-LOOK', 'N-STEP SCAN', 'FSCAN'];
 
   const handleSimulate = () => {
     const requestsArray = requests
@@ -21,13 +22,15 @@ function InputPanel({ onSimulate, onCompare, loading }) {
       return;
     }
 
-    onSimulate({
+    const payload = {
       requests: requestsArray,
       initial_position: parseInt(initialPosition),
       algorithm: algorithm,
       disk_size: parseInt(diskSize),
       direction: direction
-    });
+    };
+    if (algorithm === 'N-STEP SCAN') payload.n_step = Math.max(1, parseInt(nStep) || 4);
+    onSimulate(payload);
   };
 
   const handleCompare = () => {
@@ -46,7 +49,8 @@ function InputPanel({ onSimulate, onCompare, loading }) {
       initial_position: parseInt(initialPosition),
       algorithm: 'FCFS', // Ignored in comparison
       disk_size: parseInt(diskSize),
-      direction: direction
+      direction: direction,
+      n_step: Math.max(1, parseInt(nStep) || 4)
     });
   };
 
@@ -125,8 +129,23 @@ function InputPanel({ onSimulate, onCompare, loading }) {
           <option value="C-SCAN">C-SCAN - Circular SCAN</option>
           <option value="LOOK">LOOK - LOOK Algorithm</option>
           <option value="C-LOOK">C-LOOK - Circular LOOK</option>
+          <option value="N-STEP SCAN">N-Step SCAN</option>
+          <option value="FSCAN">FSCAN</option>
         </select>
       </div>
+
+      {algorithm === 'N-STEP SCAN' && (
+        <div className="form-group">
+          <label htmlFor="nStep">Batch size (N):</label>
+          <input
+            id="nStep"
+            type="number"
+            value={nStep}
+            onChange={(e) => setNStep(e.target.value)}
+            min="1"
+          />
+        </div>
+      )}
 
       {algorithmsRequiringDirection.includes(algorithm) && (
         <div className="form-group">

@@ -202,39 +202,106 @@ class DiskScheduler:
         
         total_seek_time, seek_operations = self.calculate_seek_time(sequence)
         return sequence, total_seek_time, seek_operations
-    
-    def simulate(self, algorithm: str, direction: str = "right") -> dict:
+
+    def n_step_scan(self, n: int, direction: str = "right") -> Tuple[List[int], int, List[Tuple[int, int]]]:
+        """
+        N-Step SCAN Algorithm.
+        Splits requests into segments of size N and processes each segment with SCAN.
+        New requests (in next segment) are not serviced until the current segment is done.
+        """
+        if n < 1:
+            raise ValueError("N must be at least 1")
+        reqs = self.requests.copy()
+        if not reqs:
+            return [], 0, []
+        full_sequence = []
+        current_position = self.initial_position
+        going_right = direction.lower() == "right"
+        total_seek_time = 0
+        all_seek_ops = []
+        for i in range(0, len(reqs), n):
+            batch = reqs[i : i + n]
+            scheduler = DiskScheduler(batch, current_position, self.disk_size)
+            seq, seek_time, seek_ops = scheduler.scan("right" if going_right else "left")
+            full_sequence.extend(seq)
+            total_seek_time += seek_time
+            all_seek_ops.extend(seek_ops)
+            if seq:
+                current_position = seq[-1]
+            going_right = not going_right  # alternate direction for next batch (common variant)
+        return full_sequence, total_seek_time, all_seek_ops
+
+    def fscan(self, direction: str = "right") -> Tuple[List[int], int, List[Tuple[int, int]]]:
+        """
+        FSCAN Algorithm.
+        Uses two queues: while one queue is serviced with SCAN, new requests go to the other.
+        For static input we split requests into two queues (first half / second half) and
+        service queue 1 with SCAN, then queue 2 with SCAN from where we left off.
+        """
+        reqs = self.requests.copy()
+        if not reqs:
+            return [], 0, []
+        mid = (len(reqs) + 1) // 2
+        queue1, queue2 = reqs[:mid], reqs[mid:]
+        full_sequence = []
+        current_position = self.initial_position
+        total_seek_time = 0
+        all_seek_ops = []
+        for batch in (queue1, queue2):
+            if not batch:
+                continue
+            scheduler = DiskScheduler(batch, current_position, self.disk_size)
+            seq, seek_time, seek_ops = scheduler.scan(direction)
+            full_sequence.extend(seq)
+            total_seek_time += seek_time
+            all_seek_ops.extend(seek_ops)
+            if seq:
+                current_position = seq[-1]
+        return full_sequence, total_seek_time, all_seek_ops
+
+    def simulate(self, algorithm: str, direction: str = "right", n_step: Optional[int] = None) -> dict:
         """
         Run simulation for a specific algorithm
-        
+
         Args:
-            algorithm: Algorithm name (FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK)
+            algorithm: Algorithm name (FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK, N-STEP SCAN, FSCAN)
             direction: Initial direction for directional algorithms
-            
+            n_step: Batch size for N-Step SCAN (required when algorithm is N-STEP SCAN)
+
         Returns:
             Dictionary with simulation results
         """
-        algorithm = algorithm.upper()
-        
-        if algorithm == "FCFS":
+        algorithm_upper = algorithm.upper().strip()
+        # Normalize display name for N-Step SCAN
+        if algorithm_upper == "N-STEP SCAN" or algorithm_upper == "NSTEP SCAN":
+            algorithm_upper = "N-STEP SCAN"
+        if algorithm_upper == "FSCAN":
+            pass  # keep as FSCAN
+
+        if algorithm_upper == "FCFS":
             sequence, total_seek_time, seek_operations = self.fcfs()
-        elif algorithm == "SSTF":
+        elif algorithm_upper == "SSTF":
             sequence, total_seek_time, seek_operations = self.sstf()
-        elif algorithm == "SCAN":
+        elif algorithm_upper == "SCAN":
             sequence, total_seek_time, seek_operations = self.scan(direction)
-        elif algorithm == "C-SCAN" or algorithm == "CSCAN":
+        elif algorithm_upper in ("C-SCAN", "CSCAN"):
             sequence, total_seek_time, seek_operations = self.c_scan(direction)
-        elif algorithm == "LOOK":
+        elif algorithm_upper == "LOOK":
             sequence, total_seek_time, seek_operations = self.look(direction)
-        elif algorithm == "C-LOOK" or algorithm == "CLOOK":
+        elif algorithm_upper in ("C-LOOK", "CLOOK"):
             sequence, total_seek_time, seek_operations = self.c_look(direction)
+        elif algorithm_upper == "N-STEP SCAN":
+            n = n_step if n_step is not None and n_step >= 1 else 4
+            sequence, total_seek_time, seek_operations = self.n_step_scan(n, direction)
+        elif algorithm_upper == "FSCAN":
+            sequence, total_seek_time, seek_operations = self.fscan(direction)
         else:
             raise ValueError(f"Unknown algorithm: {algorithm}")
         
         average_seek_time = total_seek_time / len(sequence) if sequence else 0
-        
+
         return {
-            "algorithm": algorithm,
+            "algorithm": algorithm_upper,
             "sequence": sequence,
             "total_seek_time": total_seek_time,
             "average_seek_time": round(average_seek_time, 2),

@@ -85,6 +85,19 @@ def get_algorithms(request):
                 "full_name": "Circular LOOK",
                 "description": "Similar to C-SCAN but only goes to the last request",
                 "requires_direction": True
+            },
+            {
+                "name": "N-STEP SCAN",
+                "full_name": "N-Step SCAN",
+                "description": "Splits requests into batches of N; each batch serviced with SCAN",
+                "requires_direction": True,
+                "requires_n_step": True
+            },
+            {
+                "name": "FSCAN",
+                "full_name": "FSCAN",
+                "description": "Two queues: service one with SCAN while the other collects (simulated as two batches)",
+                "requires_direction": True
             }
         ]
     })
@@ -98,7 +111,13 @@ def simulate(request):
         algorithm = request.data.get('algorithm')
         disk_size = request.data.get('disk_size', 200)
         direction = request.data.get('direction', 'right')
-        
+        n_step = request.data.get('n_step')
+        if n_step is not None:
+            try:
+                n_step = int(n_step)
+            except (TypeError, ValueError):
+                n_step = None
+
         # Validate required fields
         if not requests_list:
             return Response(
@@ -116,23 +135,32 @@ def simulate(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Validate algorithm
-        valid_algorithms = ["FCFS", "SSTF", "SCAN", "C-SCAN", "LOOK", "C-LOOK"]
-        if algorithm.upper() not in valid_algorithms:
+        # Validate algorithm (normalize N-STEP SCAN for check)
+        valid_algorithms = ["FCFS", "SSTF", "SCAN", "C-SCAN", "LOOK", "C-LOOK", "N-STEP SCAN", "FSCAN"]
+        algo_upper = algorithm.upper().strip()
+        if algo_upper == "NSTEP SCAN":
+            algo_upper = "N-STEP SCAN"
+        if algo_upper not in valid_algorithms:
             return Response(
                 {"detail": f"Unknown algorithm '{algorithm}'. Available: {', '.join(valid_algorithms)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+        if algo_upper == "N-STEP SCAN" and (n_step is None or n_step < 1):
+            return Response(
+                {"detail": "n_step (positive integer) is required for N-Step SCAN"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         scheduler = DiskScheduler(
             requests=requests_list,
             initial_position=initial_position,
             disk_size=disk_size
         )
-        
+
         result = scheduler.simulate(
             algorithm=algorithm,
-            direction=direction
+            direction=direction,
+            n_step=n_step
         )
         
         # Calculate additional performance metrics
@@ -147,9 +175,10 @@ def simulate(request):
             "request": {
                 "requests": requests_list,
                 "initial_position": initial_position,
-                "algorithm": algorithm,
+                "algorithm": result["algorithm"],
                 "disk_size": disk_size,
-                "direction": direction
+                "direction": direction,
+                "n_step": n_step
             },
             "result": {
                 "algorithm": result["algorithm"],
@@ -212,14 +241,22 @@ def compare_algorithms(request):
             disk_size=disk_size
         )
         
-        algorithms = ["FCFS", "SSTF", "SCAN", "C-SCAN", "LOOK", "C-LOOK"]
+        algorithms = ["FCFS", "SSTF", "SCAN", "C-SCAN", "LOOK", "C-LOOK", "N-STEP SCAN", "FSCAN"]
+        n_step = request.data.get('n_step', 4)
+        try:
+            n_step = int(n_step) if n_step is not None else 4
+        except (TypeError, ValueError):
+            n_step = 4
+        if n_step < 1:
+            n_step = 4
         results = []
-        
+
         for algo in algorithms:
             try:
                 result = scheduler.simulate(
                     algorithm=algo,
-                    direction=direction
+                    direction=direction,
+                    n_step=n_step if algo == "N-STEP SCAN" else None
                 )
                 results.append(result)
             except Exception as e:

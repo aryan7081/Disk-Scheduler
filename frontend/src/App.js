@@ -109,6 +109,8 @@ function App() {
                   <li><strong>C-SCAN</strong> - Circular SCAN</li>
                   <li><strong>LOOK</strong> - LOOK Algorithm</li>
                   <li><strong>C-LOOK</strong> - Circular LOOK</li>
+                  <li><strong>N-Step SCAN</strong> - Batched SCAN (batch size N)</li>
+                  <li><strong>FSCAN</strong> - Two-queue SCAN</li>
                 </ul>
               </div>
             </div>
