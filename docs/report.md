@@ -1,30 +1,34 @@
-# Disk Scheduling Algorithm Simulator
+<!-- IEEE-style report: use with an IEEE template or export to PDF with 10pt/11pt body, two columns if required -->
 
-**Gangadhar Yadav, Samyak Mittal, Ayush Dev**  
-Rishihood University  
-February 2026  
+<div align="center">
 
-*Course: Operating Systems | Project: Disk Management – Simulate how disks prioritize read/write operations for efficiency*
+**Disk Scheduling Algorithm Simulator**
+
+Gangadhar Yadav, Samyak Mittal, Ayush Dev
+
+*Rishihood University, Delhi NCR, India*
+
+*Course: Operating Systems | Project: Disk Management*
+
+*February 2026*
+
+</div>
 
 ---
 
-## Abstract
-
-This project implements a Disk Scheduling Algorithm Simulator to demonstrate how an operating system schedules disk I/O requests to minimize seek time and improve performance. The system includes six standard algorithms—FCFS, SSTF, SCAN, C-SCAN, LOOK, and C-LOOK—with a web-based interface for input, simulation, and comparison. The backend is built with Django (Python), and the frontend with React, including charts for head movement, seek distance, and performance comparison.
+**Abstract—** This project implements a Disk Scheduling Algorithm Simulator to demonstrate how an operating system schedules disk I/O requests to minimize seek time and improve performance. The system includes six standard algorithms—FCFS, SSTF, SCAN, C-SCAN, LOOK, and C-LOOK—with a web-based interface for input, simulation, and comparison. The backend is built with Django (Python), and the frontend with React, including charts for head movement, seek distance, and performance comparison.
 
 **Index Terms—** Disk scheduling, FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK, seek time, operating systems, I/O management.
 
 ---
 
-## I. Introduction
+## I. INTRODUCTION
 
 In a multi-process environment, several processes may request disk access at the same time. The operating system must decide the order in which to serve these requests. Disk scheduling is the technique used to order and service these requests so that total head movement (seek time) is reduced and throughput is improved [1].
 
 The motivation for this project is to understand how the OS manages disk I/O, to compare different scheduling policies (fairness vs. performance), and to visualize head movement and seek time for each algorithm. The scope includes implementing six disk scheduling algorithms, providing a web UI to enter requests and parameters, and visualizing sequence, seek distance, and comparison of all algorithms.
 
----
-
-## II. Problem Statement and Objectives
+## II. PROBLEM STATEMENT AND OBJECTIVES
 
 ### A. Problem Statement
 
@@ -34,9 +38,7 @@ Design and implement a simulator that: (1) accepts a list of track requests and 
 
 The objectives are to implement the six disk scheduling algorithms correctly, to build a REST API for simulation and comparison, to create an interactive frontend with charts and result tables, and to compare algorithms and interpret results (fairness, starvation, performance).
 
----
-
-## III. Methodology and System Design
+## III. METHODOLOGY AND SYSTEM DESIGN
 
 ### A. Architecture
 
@@ -57,9 +59,7 @@ The system uses a two-tier architecture. The backend is implemented with Django 
 
 Backend: Python, Django 4.2, Django REST Framework. Frontend: React 18, Recharts. API: REST (JSON).
 
----
-
-## IV. Implementation Details
+## IV. IMPLEMENTATION DETAILS
 
 ### A. Backend
 
@@ -73,9 +73,7 @@ Components include Header, InputPanel (requests, position, algorithm, direction)
 
 The system computes total seek time (sum of seek distances), average seek time, throughput and efficiency, and identifies the best algorithm (minimum total seek time) for the given input.
 
----
-
-## V. Results and Discussion
+## V. RESULTS AND DISCUSSION
 
 ### A. Sample Input
 
@@ -85,19 +83,15 @@ Requests: 98, 183, 37, 122, 14, 124, 65, 67. Initial head position: 53. Disk siz
 
 FCFS is simple and fair but often gives higher total seek time. SSTF usually reduces seek time but can cause starvation for distant requests. SCAN, C-SCAN, LOOK, and C-LOOK balance performance and fairness; LOOK and C-LOOK avoid unnecessary movement to disk ends.
 
-### C. Screenshots
 
-*(Add screenshots here: input form, simulation result with charts, comparison view with bar chart and best algorithm.)*
 
----
-
-## VI. Conclusion
+## VI. CONCLUSION
 
 The Disk Scheduling Algorithm Simulator successfully implements six standard OS disk scheduling algorithms and provides a web-based interface to simulate and compare them. The project demonstrates the trade-offs between fairness (e.g., FCFS) and performance (e.g., SSTF, SCAN-family) and helps in understanding how the OS can optimize disk I/O. Future work could include more algorithms, animations, or export of results.
 
 ---
 
-## References
+## REFERENCES
 
 [1] A. Silberschatz, P. B. Galvin, and G. Gagne, *Operating System Concepts*, 10th ed. Hoboken, NJ, USA: Wiley, 2018.
 
@@ -109,9 +103,8 @@ The Disk Scheduling Algorithm Simulator successfully implements six standard OS 
 
 ---
 
-## Appendix
-
-### A. How to Run the Project
+## APPENDIX A
+### How to Run the Project
 
 **Backend:**
 ```bash
@@ -132,6 +125,7 @@ npm start
 
 Open http://localhost:3000 and use the UI to simulate and compare algorithms.
 
-### B. Repository
+## APPENDIX B
+### Repository
 
 Project repository: https://github.com/aryan7081/Disk-Scheduler
